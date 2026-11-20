@@ -1,0 +1,1022 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>От вопроса к данным – тренажёр</title>
+<style>
+/* ── Дизайн-токены (общие с Codebook и TurnPDF) ───────────────────────── */
+:root{
+  --ink:#2b2620; --muted:#5f564a; --faint:#847a6b;
+  --accent:#A85D3E; --accent-deep:#7A4028; --accent-soft:rgba(168,93,62,.12);
+  --sage:#748268; --sage-deep:#4F5C47; --sage-soft:rgba(116,130,104,.15);
+  --line:rgba(140,95,70,.18); --line-light:rgba(140,95,70,.1);
+  --warn:#8a3a3a; --warn-bg:rgba(138,58,58,.06); --warn-border:rgba(138,58,58,.25);
+  --amber:#7a5a14; --amber-bg:rgba(190,150,60,.1); --amber-border:rgba(190,150,60,.35);
+  --hero-bg:#2C1A0B; --gold-bright:#e3b969;
+  --radius:14px; --radius-lg:20px;
+  --serif:Cambria,Georgia,'Times New Roman',serif;
+  --mono:ui-monospace,SFMono-Regular,Consolas,'Liberation Mono',Menlo,monospace;
+  --shadow:0 10px 36px rgba(130,70,45,.12);
+  --glass-bg:rgba(255,252,246,.55);
+  --glass-border:rgba(255,255,255,.7);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--serif); color:var(--ink); line-height:1.65; font-size:17px;
+  background:#f7f2e7;
+  background-image:
+    radial-gradient(ellipse 900px 700px at 10% -5%, rgba(255,247,232,.9), transparent 60%),
+    radial-gradient(ellipse 800px 800px at 100% 30%, rgba(255,250,240,.7), transparent 55%),
+    radial-gradient(ellipse 900px 900px at 30% 110%, rgba(250,238,222,.55), transparent 60%);
+  background-attachment:fixed;
+  display:flex; flex-direction:column; min-height:100vh;
+}
+a{color:var(--accent-deep); text-underline-offset:3px}
+a:hover{color:var(--accent)}
+::selection{background:rgba(168,93,62,.2)}
+a:focus-visible,button:focus-visible,label:focus-visible,[tabindex="0"]:focus-visible{
+  outline:2px solid var(--accent); outline-offset:2px; border-radius:4px
+}
+.skip-link{
+  position:absolute; top:-100px; left:16px; z-index:99;
+  padding:10px 18px; border-radius:8px;
+  background:var(--accent); color:#fbf8f2;
+  font-weight:700; font-size:13px; text-decoration:none; transition:top .15s
+}
+.skip-link:focus{top:8px}
+
+.wrap{max-width:900px; margin:0 auto; width:100%; padding:40px 24px 64px; flex:1 0 auto}
+
+/* ── Шапка страницы ───────────────────────────────────────────────────── */
+.page-header{border-bottom:1px solid var(--line); padding-bottom:18px; margin-bottom:24px}
+.kicker{
+  font-size:12.5px; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--faint); margin:0 0 6px; font-weight:700
+}
+h1{font-size:30px; line-height:1.2; margin:0; color:var(--accent-deep); font-weight:700}
+.page-header .lead{margin-top:8px; color:var(--muted); font-size:16px}
+
+/* ── Шаги ─────────────────────────────────────────────────────────────── */
+.steps{display:flex; flex-wrap:wrap; gap:7px; margin-top:16px; font-size:13.5px}
+.steps span{
+  padding:4px 13px; border:1.5px solid var(--line); border-radius:999px;
+  color:var(--muted); background:rgba(255,255,255,.45)
+}
+.steps .now{background:var(--accent-deep); border-color:var(--accent-deep); color:#fbf8f2; font-weight:700}
+.steps .done{border-color:rgba(116,130,104,.45); color:var(--sage-deep)}
+.steps .go{cursor:pointer; transition:border-color .15s,color .15s,transform .15s}
+.steps .go:hover{border-color:var(--accent); color:var(--accent-deep); transform:translateY(-1px)}
+
+/* ── Карточки ─────────────────────────────────────────────────────────── */
+.card{
+  background:var(--glass-bg); backdrop-filter:blur(20px) saturate(160%);
+  -webkit-backdrop-filter:blur(20px) saturate(160%);
+  border:1px solid var(--glass-border); border-radius:var(--radius-lg);
+  padding:24px 26px; margin:18px 0; box-shadow:var(--shadow)
+}
+.card h2{font-size:21px; margin:0 0 12px; color:var(--accent-deep); font-weight:700}
+.card h3{font-size:16.5px; margin:20px 0 8px; color:var(--accent-deep)}
+.muted{color:var(--muted)} .small{font-size:15px}
+.taskbox{border-left:3px solid var(--accent); padding-left:18px; margin:6px 0 18px}
+
+/* ── Варианты выбора ──────────────────────────────────────────────────── */
+label.opt{
+  display:flex; gap:13px; align-items:flex-start; padding:14px 16px; margin:9px 0;
+  border:1.5px solid var(--line); border-radius:12px; cursor:pointer;
+  background:rgba(255,255,255,.45);
+  transition:border-color .15s, background .15s, transform .15s
+}
+label.opt:hover{border-color:rgba(168,93,62,.4); transform:translateY(-1px)}
+label.opt input{margin-top:5px; width:18px; height:18px; flex:0 0 auto; accent-color:var(--accent)}
+label.opt.picked{border-color:var(--accent); background:var(--accent-soft)}
+label.opt.right{border-color:rgba(116,130,104,.5); background:var(--sage-soft)}
+label.opt.wrong{border-color:var(--warn-border); background:var(--warn-bg)}
+label.opt .t{font-weight:700}
+label.opt .why{display:block; font-size:15px; margin-top:7px; color:var(--muted); line-height:1.55}
+label.opt.right .why{color:var(--sage-deep)} label.opt.wrong .why{color:var(--warn)}
+
+/* ── Поля ввода ───────────────────────────────────────────────────────── */
+input[type=text],textarea{
+  width:100%; font-family:var(--serif); font-size:16.5px; line-height:1.55;
+  padding:12px 14px; border:1.5px solid var(--line); border-radius:12px;
+  background:rgba(255,255,255,.7); color:var(--ink)
+}
+input[type=text]:focus,textarea:focus{outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent)}
+textarea{resize:vertical; min-height:124px}
+label.fl{display:block; font-weight:700; color:var(--accent-deep); margin:18px 0 7px; font-size:16px}
+label.fl .hint{display:block; font-weight:400; color:var(--muted); font-size:15px; margin-top:2px}
+.counter{font-size:13.5px; color:var(--faint); margin-top:5px; text-align:right}
+
+/* ── Кнопки ───────────────────────────────────────────────────────────── */
+.btns{display:flex; flex-wrap:wrap; gap:11px; margin-top:20px}
+button{
+  font-family:var(--serif); font-size:16.5px; padding:13px 30px; border-radius:999px;
+  cursor:pointer; border:none; background:var(--accent-deep); color:#fbf8f2;
+  min-height:52px; font-weight:700; transition:transform .15s, filter .15s
+}
+button:hover{transform:translateY(-2px); filter:brightness(1.12)}
+button.ghost{
+  background:none; border:1.5px solid var(--line); color:var(--muted); font-weight:400;
+  padding:12px 26px; min-height:48px
+}
+button.ghost:hover{border-color:var(--accent); color:var(--accent-deep); filter:none}
+button[disabled]{opacity:.45; pointer-events:none}
+
+/* ── Вердикты ─────────────────────────────────────────────────────────── */
+.verdict{margin:16px 0 0; border-radius:14px; padding:16px 20px; border:1px solid}
+.verdict h3{margin:0 0 9px; font-size:16px; font-weight:700}
+.verdict ul{margin:0; padding-left:22px} .verdict li{margin:6px 0}
+.v-ok{background:var(--sage-soft); border-color:rgba(116,130,104,.35)}
+.v-ok h3,.v-ok li{color:var(--sage-deep)}
+.v-warn{background:var(--amber-bg); border-color:var(--amber-border)}
+.v-warn h3,.v-warn li{color:var(--amber)}
+.v-bad{background:var(--warn-bg); border-color:var(--warn-border)}
+.v-bad h3,.v-bad li{color:var(--warn)}
+.v-human{background:rgba(255,255,255,.5); border-color:var(--line)}
+.v-human h3{color:var(--accent-deep)}
+.v-stop{background:#6E2A20; border-color:#531E16}
+.v-stop h3{color:#fbf8f2} .v-stop li{color:#F3DED8}
+.v-stop code{background:#531E16; color:#fbf8f2}
+.v-stop .why{color:#E4C3BA; font-size:15px; margin:12px 0 0}
+.blocked{
+  border:1.5px dashed var(--line); border-radius:12px; padding:15px 18px;
+  margin-top:16px; background:rgba(255,255,255,.4); color:var(--muted); font-size:15px
+}
+
+/* ── Блок «что из этого будет в данных» ───────────────────────────────── */
+.consequence{
+  border:1.5px solid rgba(168,93,62,.4); border-radius:var(--radius-lg);
+  padding:18px 22px; margin:18px 0; background:rgba(255,248,240,.6)
+}
+.consequence h3{
+  margin:0 0 10px; color:var(--accent-deep); font-size:12.5px;
+  text-transform:uppercase; letter-spacing:.08em; font-weight:700
+}
+.consequence p{margin:9px 0}
+
+/* ── Таблицы ──────────────────────────────────────────────────────────── */
+table.mini{border-collapse:collapse; width:100%; margin:12px 0; font-size:15px}
+table.mini th,table.mini td{border:1px solid var(--line); padding:8px 11px; text-align:left}
+table.mini th{background:rgba(168,93,62,.08); color:var(--accent-deep); font-weight:700}
+table.mini td{background:rgba(255,255,255,.5)}
+table.mini td.num{text-align:center; font-family:var(--mono)}
+
+/* ── Прочее ───────────────────────────────────────────────────────────── */
+code{font-family:var(--mono); font-size:14.5px; background:var(--accent-soft);
+     padding:2px 6px; border-radius:5px; color:var(--accent-deep)}
+pre.out{
+  white-space:pre-wrap; font-family:var(--mono); font-size:14px; line-height:1.6;
+  background:rgba(255,255,255,.7); border:1px solid var(--line);
+  border-radius:12px; padding:16px; margin:12px 0
+}
+ul.selfcheck{list-style:none; padding:0; margin:10px 0 0}
+ul.selfcheck li{margin:12px 0; display:flex; gap:11px; align-items:flex-start}
+ul.selfcheck input{margin-top:5px; width:18px; height:18px; flex:0 0 auto; accent-color:var(--accent)}
+ul.selfcheck label b{display:block; color:var(--accent-deep); font-weight:700}
+ul.selfcheck .hint2{display:block; font-size:14.5px; color:var(--muted); margin-top:3px; line-height:1.5}
+.note{
+  border:1.5px dashed var(--line); border-radius:12px; padding:15px 18px;
+  margin:18px 0; background:rgba(255,255,255,.4)
+}
+.note b{color:var(--accent-deep)}
+.ask{
+  background:rgba(255,255,255,.6); border:1.5px solid var(--line);
+  border-radius:12px; padding:16px 18px; margin:14px 0
+}
+.ask .qt{font-weight:700; color:var(--accent-deep); margin:0 0 9px}
+.ask ul{margin:7px 0 0; padding-left:22px} .ask li{margin:4px 0}
+
+dl.given{margin:0}
+dl.given dt{font-size:12.5px; text-transform:uppercase; letter-spacing:.06em;
+            color:var(--faint); margin-top:14px; font-weight:700}
+dl.given dd{margin:3px 0 0} dl.given dd b{color:var(--accent-deep)}
+details.given{
+  border:1px solid var(--line); border-radius:var(--radius);
+  background:rgba(255,255,255,.45); margin:18px 0
+}
+details.given>summary{cursor:pointer; padding:14px 22px; font-weight:700;
+                      color:var(--accent-deep); list-style:none}
+details.given>summary::-webkit-details-marker{display:none}
+details.given>summary::before{content:'▸ '; color:var(--accent)}
+details.given[open]>summary::before{content:'▾ '}
+details.given .body{padding:0 22px 18px}
+.hidden{display:none}
+
+/* ── Подвал ───────────────────────────────────────────────────────────── */
+.site-footer{
+  background:var(--hero-bg); padding:34px 22px; flex-shrink:0;
+  box-shadow:0 -4px 24px rgba(20,10,0,.14)
+}
+.footer-inner{
+  max-width:900px; margin:0 auto; display:flex; gap:20px;
+  justify-content:space-between; align-items:flex-end; flex-wrap:wrap
+}
+.footer-left p{margin:0 0 6px; font-size:13.5px; color:rgba(227,185,105,.55)}
+.footer-left a{color:var(--gold-bright); text-decoration:none; font-weight:600}
+.footer-left a:hover{text-decoration:underline}
+.footer-right{display:flex; gap:18px; flex-wrap:wrap; align-items:flex-end}
+.footer-right a{color:var(--gold-bright); text-decoration:none; font-size:13.5px; font-weight:600}
+.footer-right a:hover{text-decoration:underline}
+
+/* ── Мобильная версия ─────────────────────────────────────────────────── */
+@media (max-width:640px){
+  body{font-size:16px}
+  .wrap{padding:26px 16px 48px}
+  h1{font-size:24px}
+  .card{padding:18px 17px; border-radius:var(--radius)}
+  .verdict,.consequence{padding:15px 16px}
+  .btns button{width:100%}
+  table.mini{font-size:13.5px} table.mini th,table.mini td{padding:6px 7px}
+  details.given>summary{padding:13px 16px} details.given .body{padding:0 16px 16px}
+  .footer-inner{flex-direction:column; align-items:flex-start; gap:14px}
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">К содержанию</a>
+<div class="wrap">
+  <header class="page-header">
+    <p class="kicker">Социология · лабораторная работа</p>
+    <h1>От вопроса к данным</h1>
+    <p class="lead">Как форма вопроса задаёт структуру будущей базы данных</p>
+    <div class="steps" id="steps"></div>
+  </header>
+  <main id="main"></main>
+  </div>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-left">
+      <p>© 2026 Анна Агафонова, к.и.н. · <a href="https://urbantransmission.org" target="_blank" rel="noopener noreferrer">urbantransmission.org</a></p>
+      <p>Работает в браузере, в том числе без интернета. Всё, что вы вводите, остаётся на вашем устройстве.</p>
+    </div>
+    <div class="footer-right">
+      <a href="personal-data.html">Политика обработки персональных данных</a>
+      <a href="terms.html">Условия использования</a>
+    </div>
+  </div>
+</footer>
+
+</div>
+
+<script>
+'use strict';
+
+/* ════════════════════════════════════════════════════════════════
+   СЦЕНАРИЙ. Чтобы сделать тренажёр по другой теме, меняется
+   только этот объект – логика ниже не трогается.
+   ════════════════════════════════════════════════════════════════ */
+var DATA = {
+  theme: 'Использование ИИ-сервисов в учёбе',
+
+  goals: [
+    { text:'Выяснить, почему студенты списывают с помощью ИИ и как это портит качество образования',
+      ok:false,
+      why:'В цели стоит готовый ответ: вы заранее решили, что студенты списывают и что образование от этого портится. Исследование, которое начинается с ответа, не может его проверить. И «портит» нечем измерить – непонятно, что считать.' },
+    { text:'Изучить отношение студентов к использованию ИИ в учёбе',
+      ok:false,
+      why:'Звучит прилично, оценок нет, но эта формулировка не подходит по другой причине: из такой цели не выводится ни один признак. Что считать отношением? По чему судить, каковы критерии? Пока ответа нет, вопросы придётся придумывать из головы, и получится анкета, где каждый вопрос по отдельности неплох, а вместе они ничего не измеряют.' },
+    { text:'Оценить, насколько практика использования ИИ-сервисов в учёбе расходится с представлениями студентов о допустимом',
+      ok:true,
+      why:'Здесь два аспекта, которые измеряются отдельно: что студент делает и что он считает допустимым. Их можно сравнить между собой, и признаки отсюда выводятся.' }
+  ],
+
+  signs: [
+    { text:'Как часто студент обращается к ИИ-сервисам при подготовке заданий', ok:true },
+    { text:'Какие именно задачи он поручает ИИ', ok:true },
+    { text:'Считает ли студент допустимым использование ИИ в письменных работах', ok:true },
+    { text:'Случалось ли сдавать работу, не указав участие ИИ', ok:true },
+    { text:'Какой у студента средний балл за прошлую сессию', ok:false,
+      why:'Признак соседний. Сам по себе он может быть интересен, но о том, расходится ли практика с представлениями о допустимом, по нему не судят. На защите по такому признаку спросить нечего.' },
+    { text:'Сколько студентов на курсе пользуется ИИ при написании работ', ok:false,
+      why:'У респондента нет ответа на этот вопрос. Он знает, что делает сам, а не что делает курс. На такой вопрос отвечают наугад, и в таблице эти ответы выглядят так же аккуратно, как настоящие.' }
+  ],
+
+  /* признак, который студент будет измерять своим вопросом */
+  priznak: 'как часто студент обращается к ИИ-сервисам при подготовке учебных заданий',
+  answerType: 'freq',
+
+  core: [' ии ','ии-','искусственн','интеллект','нейросет','нейронк','нейро-',
+         'чат-бот','чатбот','чат-гпт','chatgpt','gpt','гпт','deepseek','дипсик',
+         'гигачат','языков модел'],
+  field: ['учеб','занят','задани','реферат','курсов','диплом','конспект','эссе',
+          'семинар','экзамен','зачет','домашн','контрольн','текст','работ',
+          'литератур','перевод','задач','презентац','подготовк','стать','план'],
+  freqWords: ['никогда','редк','иногда','часто','всегда','постоянн','ежеднев',
+              'еженедельн','раз в','время от времени','каждый день'],
+  coreExamples: 'ИИ, нейросеть, ChatGPT, чат-бот',
+  fieldExamples: 'учёба, задание, реферат, конспект, перевод',
+
+  human: [
+    { t:'Вопрос измеряет выбранный признак',
+      d:'Проверьте, не спрашиваете ли вы о смежном, но другом признаке. Сверьтесь с формулировкой на первом экране.' },
+    { t:'Вопрос понятен без пояснений',
+      d:'Респондент читает его сам, обычно с телефона, и к началу фразы не возвращается.' },
+    { t:'Респондент может на него ответить',
+      d:'Иногда спрашивают о том, чего человек о себе не знает. Тогда ответ будет скорее догадкой, чем данными.' },
+    { t:'Вопрос не подталкивает к социально одобряемому ответу',
+      d:'Опрос про ИИ легко принять за проверку. Если в формулировке слышен упрёк, отвечать будут осторожнее, чем есть на самом деле.' }
+  ],
+
+  /* экран 4: паспортичка */
+  passport: [
+    { text:'Курс обучения: 1 / 2 / 3 / 4', ok:true },
+    { text:'Ваше имя или ник (по желанию)', ok:false,
+      why:'Даже по желанию и даже ник – это прямой идентификатор. Для анализа он не нужен, а в таблице останется и свяжет все остальные ответы с конкретным человеком. Тот, кто вписал ник, обычно не думает, что отвечает уже не анонимно.' },
+    { text:'Направление подготовки', ok:true },
+    { text:'Номер группы и номер в списке группы', ok:false,
+      why:'Вместе эти два числа указывают на одного человека не хуже фамилии. Отдельно номер группы ещё допустим, вместе с номером в списке – уже нет.' },
+    { text:'Возраст (полных лет)', ok:true },
+    { text:'Адрес электронной почты для связи', ok:false,
+      why:'Это персональные данные в чистом виде. Если адрес нужен для повторного опроса, его хранят отдельно от ответов и связывают кодом, а не держат в той же таблице.' }
+  ],
+
+  /* экран 5: заранее написанные блоки анкеты */
+  rest: [
+    { n:1, q:'Как часто вы используете ИИ-сервисы в учёбе?',
+      opts:['Никогда','Редко','Иногда','Часто','Всегда'] },
+    { n:2, q:'Задачи, поручаемые ИИ (отметьте все подходящие)',
+      opts:['Поиск литературы','Правка стиля','План и идеи','Черновик текста','Задачи и код'] },
+    { n:3, q:'Оцените согласие с утверждением: «Использование ИИ при подготовке письменных работ допустимо, если студент сам редактирует текст»',
+      opts:['Совершенно согласен','Скорее согласен','Скорее не согласен','Совершенно не согласен','Затрудняюсь ответить'] },
+    { n:4, q:'Сдавали ли вы работу, сгенерированную ИИ, без указания этого?',
+      opts:['Да','Нет','Затрудняюсь ответить'] },
+    { n:5, q:'Что бы вы изменили в правилах вуза об использовании ИИ? (необязательно, ответ в свободной форме)',
+      opts:[] }
+  ],
+  passportOut: [
+    { q:'Курс', opts:['1','2','3','4'] },
+    { q:'Направление подготовки', opts:['Гуманитарное','Социально-экономическое','Естественнонаучное / ИТ'] }
+  ]
+};
+
+var SCREENS = ['Цель и признаки','Ваш вопрос','Типы вопросов','Паспортичка','Готовая анкета'];
+
+/* состояние прохождения */
+var S = { screen:0, seen:{}, goal:null, signs:{}, question:'', options:'', saved:false,
+          t3:[null,null,null], passport:{} };
+
+/* ════════════════ ОБЩИЕ ФУНКЦИИ ════════════════ */
+
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function norm(s){ return String(s||'').toLowerCase().replace(/ё/g,'е').replace(/\s+/g,' ').trim(); }
+function padded(s){ return ' ' + norm(s) + ' '; }
+function found(hay, list){
+  var hit=[]; for (var i=0;i<list.length;i++){ if (hay.indexOf(list[i].replace(/ё/g,'е'))>=0) hit.push(list[i]); }
+  return hit;
+}
+function plural(n, one, few, many){
+  var a=Math.abs(n)%100, b=a%10;
+  if (a>10&&a<20) return n+' '+many;
+  if (b>1&&b<5) return n+' '+few;
+  if (b===1) return n+' '+one;
+  return n+' '+many;
+}
+function znak(n){ return plural(n,'знак','знака','знаков'); }
+
+var VOWELS='аеиоуыэюя';
+function looksLikeText(s){
+  var t=norm(s).replace(/[^а-я\s-]/g,' ').replace(/\s+/g,' ').trim();
+  var words=t.split(' ').filter(function(w){return w.length>0;});
+  if (words.length<3) return false;
+  var letters=t.replace(/[^а-я]/g,''), v=0;
+  for (var i=0;i<letters.length;i++) if (VOWELS.indexOf(letters[i])>=0) v++;
+  if (!letters.length || v/letters.length<0.18) return false;
+  for (var k=0;k<words.length;k++){
+    if (words[k].length>=4){
+      var has=false;
+      for (var j=0;j<words[k].length;j++) if (VOWELS.indexOf(words[k][j])>=0) has=true;
+      if (!has) return false;
+    }
+  }
+  return true;
+}
+
+/* ════════════════ ПРОВЕРКА СВОБОДНОГО ВВОДА (экран 2) ════════════════ */
+
+var HARD_TERMS=['операционализ','индикатор','валидн','респондент','выборк','репрезентатив',
+                'корреляц','латентн','детерминант','концептуализ','дихотом'];
+var SOFT_TERMS=['генеративн','промпт','промт','атрибуц','недобросовестн','метакогнитивн',
+                'саморегуляц','цифров след','медиаграмотн','академическ честност'];
+var LEADING=['не правда ли','не так ли','согласитесь','разве','ведь ','вы же','ведь вы'];
+var EVALUATIVE=['плох','ужасн','безобразн','отличн','прекрасн','замечательн','хорош'];
+var ABSOLUTE=['всегда','никогда','все ','всем ','каждый','каждая','любой','любая'];
+var INFORMAL=[' ты ',' тебе ',' тебя ',' твой',' твоя',' твои',' тобой'];
+var IMPERATIVE=['оцените','укажите','отметьте','выберите','назовите','расскажите','опишите'];
+var NONSCALE=['затрудняюсь ответить','не знаю','нет ответа','другое','затрудняюсь'];
+var MIDDLE_WORDS=['иногда','время от времени','затрудняюсь','нейтрально','ни то ни другое',
+                  'удовлетворительно','средн','наполовину'];
+
+function parseRange(text){
+  var s=norm(text).replace(/–|–|−/g,'-');
+  var m=s.match(/(\d+)\s*-\s*(\d+)/); if (m) return {lo:+m[1],hi:+m[2]};
+  m=s.match(/от\s+(\d+)\s+до\s+(\d+)/); if (m) return {lo:+m[1],hi:+m[2]};
+  m=s.match(/(\d+)\s*(?:и\s+)?(?:более|больше|\+)/); if (m) return {lo:+m[1],hi:Infinity};
+  m=s.match(/(?:до|менее|меньше)\s+(\d+)/); if (m) return {lo:-Infinity,hi:+m[1]};
+  m=s.match(/^(\d+)$/); if (m) return {lo:+m[1],hi:+m[1]};
+  return null;
+}
+
+function analyse(qRaw, optsRaw){
+  var ok=[],warn=[],bad=[],stop=[];
+  var q=norm(qRaw), qp=padded(qRaw);
+  var opts=String(optsRaw||'').split('\n').map(function(x){return x.trim();})
+             .filter(function(x){return x.length>0;});
+
+  if (!q){ stop.push('Текст вопроса не введён – проверять пока нечего.');
+           return {ok:ok,warn:warn,bad:bad,stop:stop,opts:opts,empty:true}; }
+
+  if (!looksLikeText(qRaw))
+    stop.push('Это не похоже на фразу на русском языке: слишком мало слов или в них почти нет гласных. Напишите вопрос словами.');
+
+  /* для поиска по темам знаки препинания заменяются пробелами: иначе «к ИИ?»
+     не совпадёт со словом « ии », а «ИИ-сервис» совпадёт по «ии-» */
+  var qt=' '+norm(qRaw).replace(/[^а-яa-z0-9-]+/g,' ').replace(/\s+/g,' ').trim()+' ';
+  var core=found(qt,DATA.core), field=found(qt,DATA.field);
+  if (!core.length && !field.length){
+    stop.push('<b>Этот вопрос не о том, что вы измеряете.</b> Вы измеряете признак «'+
+      DATA.priznak+'», но в вашем вопросе нет ни одного слова, которое к нему относится. '+
+      'Я ищу слова вроде <code>'+DATA.coreExamples.split(', ').join('</code>, <code>')+
+      '</code>, <code>'+DATA.fieldExamples.split(', ').join('</code>, <code>')+
+      '</code> – ни одного не нашлось. Вернитесь к формулировке признака и спросите именно о нём.');
+  } else if (!core.length){
+    warn.push('В вопросе есть слова об учёбе, но нет ни одного слова о том, <i>обращается ли человек к ИИ</i>. '+
+              'Проверьте: вы измеряете обращение к ИИ-сервисам – или что-то соседнее, например сколько времени уходит на задание?');
+  } else {
+    ok.push('В вопросе есть слова, связанные с выбранным признаком <code>'+
+            core.concat(field).slice(0,4).map(esc).join('</code>, <code>')+'</code>.');
+  }
+
+  var L=qRaw.trim().length;
+  if (L>140) warn.push('Вопрос длинный – '+znak(L)+'. В форме такой вопрос читают по диагонали, и часть условий теряется. Попробуйте уложиться в 120.');
+  else if (L<20) warn.push('Вопрос очень короткий – '+znak(L)+'. Проверьте, понятно ли из него, о чём именно вы спрашиваете.');
+  else ok.push('Длина – '+znak(L)+', вопрос читается одним взглядом.');
+
+  var endsQ=/\?\s*$/.test(qRaw.trim()), imp=false;
+  for (var i=0;i<IMPERATIVE.length;i++) if (q.indexOf(IMPERATIVE[i])===0) imp=true;
+  if (endsQ) ok.push('Это вопрос: формулировка заканчивается вопросительным знаком.');
+  else if (imp) ok.push('Это задание-поручение («'+esc(qRaw.trim().split(' ')[0])+'…»), знак вопроса ему не нужен.');
+  else stop.push('<b>Это не вопрос.</b> Здесь нет ни вопросительного знака, ни слова вроде '+
+    '<code>оцените</code>, <code>укажите</code>, <code>отметьте</code>, с которого начинается задание респонденту. '+
+    'Набор слов – даже правильных слов по теме – анкетным вопросом не является: человек не поймёт, что у него спрашивают.');
+
+  var hard=found(q,HARD_TERMS);
+  if (hard.length) bad.push('В вопросе есть слово из языка исследователя: <code>'+
+    hard.map(esc).join('</code>, <code>')+'</code>. Такие слова уместны в описании исследования, '+
+    'но не в вопросе, который задают человеку.');
+  var soft=found(q,SOFT_TERMS);
+  if (soft.length) warn.push('Есть профессиональный термин: <code>'+soft.map(esc).join('</code>, <code>')+
+    '</code>. Исследователю он понятен, респонденту второго курса – скорее нет.');
+  if (!hard.length && !soft.length) ok.push('В вопросе нет специальных терминов, которые могут быть непонятны респонденту.');
+
+  var conj=[];
+  if (qp.indexOf(' и ')>=0) conj.push('и');
+  if (qp.indexOf(' или ')>=0) conj.push('или');
+  if (qp.indexOf(' а также ')>=0) conj.push('а также');
+  if (conj.length) warn.push('В вопросе есть союз «'+conj.join('», «')+'». Это часто признак двойного вопроса: '+
+    'человек согласен с одной частью и не согласен с другой, а ответ один. Если союз соединяет примеры '+
+    '(«реферат или курсовая») – всё в порядке.');
+  else ok.push('В вопросе нет союзов, которые могли бы превратить его в двойной вопрос.');
+
+  var lead=found(qp,LEADING);
+  if (lead.length) bad.push('Формулировка подталкивает к ответу: «'+lead.map(esc).join('», «')+
+    '». На такой вопрос отвечают так, как кажется правильным, а не так, как думают на самом деле. '+
+    'Это называется социально одобряемым ответом.');
+  var ev=found(q,EVALUATIVE);
+  if (ev.length) warn.push('Есть оценочное слово: <code>'+ev.map(esc).join('</code>, <code>')+
+    '</code>. Проверьте, не подсказываете ли вы человеку, что он должен чувствовать.');
+  var abs=found(qp,ABSOLUTE);
+  if (abs.length) warn.push('В тексте вопроса есть слово «'+abs.map(function(x){return esc(x.trim());}).join('», «')+
+    '». На вопросы со «всегда» и «никогда» люди отвечают отрицательно даже тогда, когда явление у них есть: '+
+    'достаточно одного исключения. В вариантах ответа эти слова уместны – проверяется только вопрос.');
+  var inf=found(qp,INFORMAL);
+  if (inf.length) warn.push('Обращение на «ты». В студенческой анкете это допустимое решение, но тогда на «ты» должны быть все вопросы, включая паспортичку: смешение «ты» и «вы» в одной анкете сбивает респондента.');
+  if (!lead.length && !ev.length && !abs.length && !inf.length) ok.push('Наводящих и оценочных формулировок не нашлось.');
+
+  if (!opts.length){
+    stop.push('Варианты ответа не введены. Без них это открытый вопрос, а нужен закрытый со шкалой частоты.');
+    return {ok:ok,warn:warn,bad:bad,stop:stop,opts:opts};
+  }
+  if (opts.length===1) stop.push('Вариант ответа всего один – выбирать не из чего.');
+
+  var seen={},dups=[];
+  opts.forEach(function(o){ var k=norm(o); if (seen[k]){ if (dups.indexOf(o)<0) dups.push(o); } else seen[k]=1; });
+  if (dups.length) bad.push('Варианты повторяются: «'+dups.map(esc).join('», «')+'».');
+
+  var scale=[],nonscale=[];
+  opts.forEach(function(o){ var k=norm(o),isNon=false;
+    NONSCALE.forEach(function(n){ if (k.indexOf(n)>=0) isNon=true; });
+    (isNon?nonscale:scale).push(o); });
+
+  if (DATA.answerType==='freq'){
+    var fh=scale.filter(function(o){ return found(norm(o),DATA.freqWords).length>0; });
+    if (!fh.length) stop.push('<b>Варианты ответа – не шкала частоты.</b> Нужна шкала частоты, '+
+      'а ни в одном из ваших вариантов нет слова о том, как часто: <code>никогда</code>, <code>редко</code>, '+
+      '<code>иногда</code>, <code>часто</code>, <code>всегда</code>, <code>каждый день</code>.');
+    else if (fh.length<3) warn.push('Слова о частоте нашлись только в '+
+      plural(fh.length,'варианте','вариантах','вариантах')+' из '+scale.length+
+      '. Проверьте, все ли позиции шкалы говорят о частоте.');
+    else ok.push('Варианты ответа образуют шкалу частоты: слова о частоте есть в '+fh.length+' из '+scale.length+' позиций.');
+  }
+
+  var ranges=[];
+  scale.forEach(function(o){ var r=parseRange(o); if (r) ranges.push({o:o,r:r}); });
+  var rep=false;
+  for (var a=0;a<ranges.length&&!rep;a++){
+    for (var b=a+1;b<ranges.length;b++){
+      var x=ranges[a].r,y=ranges[b].r;
+      if (x.lo<=y.hi && y.lo<=x.hi){
+        bad.push('Варианты «'+esc(ranges[a].o)+'» и «'+esc(ranges[b].o)+'» пересекаются: человек, '+
+          'у которого значение попадает в оба, не знает, что выбрать, а в данных это даст разнобой.');
+        rep=true; break;
+      }
+    }
+  }
+  if (ranges.length>=2 && !rep) ok.push('Числовые интервалы в вариантах не пересекаются.');
+
+  var n=scale.length;
+  if (n>=4&&n<=7) ok.push('В шкале '+n+' вариантов – этого достаточно, чтобы различать разную частоту обращения к ИИ.');
+  else if (n===2||n===3) warn.push('Вариантов всего '+n+'. Для шкалы частоты этого обычно мало: человеку придётся округлять свой ответ.');
+  else if (n>7) warn.push('Вариантов '+n+'. На слух столько не удержать, особенно если вопрос читают вслух.');
+
+  if (n>=3){
+    if (n%2===1){
+      var mid=scale[(n-1)/2],named=false;
+      MIDDLE_WORDS.forEach(function(w){ if (norm(mid).indexOf(w)>=0) named=true; });
+      ok.push('Вариантов нечётное количество, поэтому у шкалы есть середина – «'+esc(mid)+'»'+
+              (named?'':' (проверьте, что это действительно середина, а не край)')+'.');
+    } else {
+      warn.push('Вариантов чётное количество ('+n+'), поэтому середины у шкалы нет: респонденту, '+
+                'у которого «ни то ни другое», придётся выбрать сторону. Это допустимо, но должно быть '+
+                'вашим решением, а не случайностью.');
+    }
+  }
+
+  if (nonscale.length) warn.push('Вариант «'+nonscale.map(esc).join('», «')+'» – не часть шкалы, а отказ от ответа. '+
+    'В анкете он нужен, но при обработке его придётся объявить пропуском: иначе он получит номер позиции '+
+    'наравне с содержательными ответами и войдёт в расчёты как обычное число. Это вы увидите на следующем экране.');
+
+  var longOpt=opts.filter(function(o){ return o.length>Math.max(60,L); });
+  if (longOpt.length) warn.push('Вариант ответа длиннее самого вопроса: «'+esc(longOpt[0].slice(0,70))+
+    '…». Такие варианты до конца не дослушивают.');
+
+  return {ok:ok,warn:warn,bad:bad,stop:stop,opts:opts,scale:scale};
+}
+
+/* ════════════════ ЭКРАНЫ ════════════════ */
+
+function renderSteps(){
+  document.getElementById('steps').innerHTML = SCREENS.map(function(t,i){
+    var cls = i===S.screen ? 'now' : (S.seen[i] ? 'done' : '');
+    var go = S.seen[i] && i!==S.screen;
+    return '<span class="'+cls+(go?' go':'')+'"'+
+           (go?' data-go="'+i+'" role="button" tabindex="0"':'')+'>'+(i+1)+'. '+t+'</span>';
+  }).join('');
+  document.querySelectorAll('#steps span.go').forEach(function(el){
+    function jump(){ S.screen = +el.dataset.go; draw(); }
+    el.addEventListener('click', jump);
+    el.addEventListener('keydown', function(e){ if (e.key==='Enter'||e.key===' '){ e.preventDefault(); jump(); } });
+  });
+}
+
+function nav(backLabel, nextLabel, nextEnabled, onNext){
+  var h='<div class="btns">';
+  if (S.screen>0) h+='<button class="ghost" id="back">'+backLabel+'</button>';
+  if (nextLabel) h+='<button id="next"'+(nextEnabled?'':' disabled')+'>'+nextLabel+'</button>';
+  return h+'</div>';
+}
+function wireNav(onNext){
+  var b=document.getElementById('back');
+  if (b) b.addEventListener('click', function(){ S.screen--; draw(); });
+  var n=document.getElementById('next');
+  if (n) n.addEventListener('click', function(){ if (onNext) onNext(); S.screen++; draw(); });
+}
+
+/* ── Экран 1 ── */
+function screen1(){
+  var h='<div class="card"><h2>Задание 1.1. Выберите цель исследования</h2>'+
+    '<div class="taskbox"><p style="margin:0">Тема исследования: <b>'+esc(DATA.theme)+'</b>. '+
+    'Из трёх формулировок цели выберите правильную.</p></div>';
+  DATA.goals.forEach(function(g,i){
+    var cls='opt';
+    if (S.goal!==null){ cls+= g.ok?' right':(S.goal===i?' wrong':''); }
+    h+='<label class="'+cls+'" data-i="'+i+'"><input type="radio" name="goal"'+
+       (S.goal===i?' checked':'')+'>'+
+       '<span><span class="t">'+esc(g.text)+'</span>'+
+       (S.goal!==null?'<span class="why">'+esc(g.why)+'</span>':'')+'</span></label>';
+  });
+  h+='</div>';
+
+  if (S.goal!==null){
+    h+='<div class="card"><h2>Задание 1.2. Выберите признаки</h2>'+
+       '<div class="taskbox"><p style="margin:0">Признак – это то, по чему можно судить, '+
+       'достигается ли цель. Отметьте все, которые для выбранной цели работают.</p></div>';
+    DATA.signs.forEach(function(s,i){
+      var cls='opt';
+      if (S.signsDone) cls+= s.ok?' right':(S.signs[i]?' wrong':'');
+      else if (S.signs[i]) cls+=' picked';
+      h+='<label class="'+cls+'" data-s="'+i+'"><input type="checkbox"'+
+         (S.signs[i]?' checked':'')+'>'+
+         '<span><span class="t">'+esc(s.text)+'</span>'+
+         (S.signsDone&&s.why?'<span class="why">'+esc(s.why)+'</span>':'')+'</span></label>';
+    });
+    if (!S.signsDone) h+='<div class="btns"><button id="checkSigns">Проверить</button></div>';
+    h+='</div>';
+  }
+
+  if (S.signsDone){
+    h+='<div class="consequence"><h3>Что из этого будет в данных</h3>'+
+       '<p>Каждый отмеченный признак – это будущая переменная базы данных. Их четыре, '+
+       'значит переменных будет минимум четыре.</p>'+
+       '<p><b>Признак, по которому вы не задали вопроса, в данных не появится.</b> '+
+       'Добавить его после анкетирования нельзя. '+
+       'Поэтому список признаков стоит проверить до анкетирования.</p></div>';
+    h+=nav('Назад','Дальше: ваш вопрос',true);
+  }
+
+  document.getElementById('main').innerHTML=h;
+
+  document.querySelectorAll('label.opt[data-i]').forEach(function(el){
+    el.addEventListener('click', function(){ S.goal=+el.dataset.i; draw(); });
+  });
+  document.querySelectorAll('label.opt[data-s]').forEach(function(el){
+    el.addEventListener('click', function(e){
+      var i=+el.dataset.s;
+      if (S.signs[i]) delete S.signs[i]; else S.signs[i]=true;
+      if (e.target.tagName!=='INPUT') e.preventDefault();
+      draw();
+    });
+  });
+  var cs=document.getElementById('checkSigns');
+  if (cs) cs.addEventListener('click', function(){ S.signsDone=true; draw(); });
+  wireNav();
+}
+
+/* ── Экран 2 ── */
+function screen2(){
+  var h='<details class="given"><summary>Что вы решили на первом экране</summary><div class="body">'+
+    '<dl class="given"><dt>Тема</dt><dd><b>'+esc(DATA.theme)+'</b></dd>'+
+    '<dt>Цель</dt><dd>'+esc(DATA.goals.filter(function(g){return g.ok;})[0].text)+'</dd>'+
+    '<dt>Признак, который вы сейчас измеряете</dt><dd><b>'+esc(DATA.priznak)+'</b></dd></dl>'+
+    '</div></details>';
+
+  h+='<div class="card"><h2>Задание 2. Ваш вопрос</h2>'+
+    '<div class="taskbox"><p style="margin:0 0 10px">Сформулируйте закрытый вопрос, который '+
+    'измеряет приведённый ниже признак, и предложите к нему <b>пять вариантов ответа</b>. '+
+    'Отвечать будет студент, который заполняет форму сам, обычно с телефона, и к вопросу не возвращается.</p>'+
+    '<p style="margin:0"><b>Признак:</b> <span style="color:var(--deep)">'+esc(DATA.priznak)+
+    '</span>. <br><b>Тип ответов:</b> шкала частоты.</p></div>'+
+
+    '<div class="note small"><b>Что проверяется автоматически.</b> Автоматическая проверка '+
+    'не оценивает качество вопроса в целом. Она помогает заметить очевидные проблемы формулировки. Проверка выполняет две задачи. '+
+    'Во-первых, она проверяет, соответствует ли вопрос выбранному признаку и образуют ли варианты ответа шкалу частоты. '+
+    'Во-вторых, она обращает внимание на типичные ошибки в самой формулировке. '+
+    'Окончательную оценку вопроса вы делаете сами.</div>'+
+
+    '<label class="fl" for="q">Текст вопроса<span class="hint">Так, как его услышит респондент</span></label>'+
+    '<input type="text" id="q" autocomplete="off" value="'+esc(S.question)+
+    '" placeholder="Например: Как часто вы обращаетесь…">'+
+    '<div class="counter"><span id="qlen">'+znak(S.question.trim().length)+'</span></div>'+
+
+    '<label class="fl" for="opts">Варианты ответа<span class="hint">По одному в строке, '+
+    'в том порядке, в котором их прочитают</span></label>'+
+    '<textarea id="opts" placeholder="Никогда&#10;Редко&#10;Иногда&#10;Часто&#10;Всегда">'+
+    esc(S.options)+'</textarea>'+
+    '<div class="counter"><span id="olen">'+
+    plural(S.options.split('\n').filter(function(x){return x.trim();}).length,'вариант','варианта','вариантов')+
+    '</span></div>'+
+
+    '<div class="btns"><button id="check">Проверить</button>'+
+    '<button id="example" class="ghost">Показать один из возможных вариантов</button></div>'+
+    '<div id="out"></div></div><div id="exbox"></div>';
+
+  document.getElementById('main').innerHTML=h;
+
+  var qEl=document.getElementById('q'), oEl=document.getElementById('opts');
+  qEl.addEventListener('input', function(){
+    S.question=qEl.value;
+    document.getElementById('qlen').textContent=znak(qEl.value.trim().length);
+  });
+  oEl.addEventListener('input', function(){
+    S.options=oEl.value;
+    var n=oEl.value.split('\n').filter(function(x){return x.trim();}).length;
+    document.getElementById('olen').textContent=plural(n,'вариант','варианта','вариантов');
+  });
+  document.getElementById('check').addEventListener('click', function(){
+    renderCheck(analyse(S.question,S.options));
+  });
+  document.getElementById('example').addEventListener('click', function(){
+    var b=document.getElementById('exbox');
+    if (b.innerHTML){ b.innerHTML=''; return; }
+    b.innerHTML='<div class="card"><h2>Один из возможных вариантов</h2>'+
+      '<p class="small muted">Это не эталон: таких вопросов можно составить много. '+
+      'Посмотрите, чем он отличается от вашего, и решите, нужно ли что-то менять.</p>'+
+      '<p style="font-style:italic">Как часто вы обращаетесь к ИИ-сервисам при подготовке учебных заданий – '+
+      'например, чтобы найти литературу, поправить стиль или перевести текст?</p>'+
+      '<ul class="small"><li>Никогда</li><li>Редко</li><li>Иногда</li><li>Часто</li><li>Всегда</li></ul>'+
+      '<p class="small" style="margin-bottom:0">В этой формулировке приняты три решения: вместо термина '+
+      '«генеративные языковые модели» – обычные слова; примеры в скобках, чтобы человек понял, что здесь '+
+      'считается обращением; пять позиций, то есть середина есть и не приходится выбирать между «редко» и «часто».</p></div>';
+    b.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+  if (S.saved) renderCheck(analyse(S.question,S.options));
+}
+
+function block(cls,title,items){
+  if (!items.length) return '';
+  return '<div class="verdict '+cls+'"><h3>'+title+'</h3><ul><li>'+items.join('</li><li>')+'</li></ul></div>';
+}
+
+function renderCheck(res){
+  var blocked=(res.stop||[]).length>0, h='';
+  if (blocked){
+    h+='<div class="verdict v-stop"><h3>Задание не выполнено</h3><ul><li>'+res.stop.join('</li><li>')+
+       '</li></ul><p class="why">Это не оценка качества вопроса. Проверка сообщает о другом: '+
+       'того, что требовалось в задании, в тексте нет.</p></div>';
+  } else {
+    h+=block('v-bad','Что стоит поправить',res.bad);
+    h+=block('v-warn','Требует вашего решения',res.warn);
+    h+=block('v-ok','Что проверено автоматически',res.ok);
+  }
+  if (!res.empty && !blocked){
+    h+='<div class="verdict v-human"><h3>Что проверить самостоятельно</h3><ul class="selfcheck">';
+    DATA.human.forEach(function(x,i){
+      h+='<li><input type="checkbox" id="h'+i+'"><label for="h'+i+'">'+
+         '<b>'+esc(x.t)+'</b><span class="hint2">'+esc(x.d)+'</span></label></li>';
+    });
+    h+='</ul><p class="small muted" style="margin:12px 0 0">Эти пункты – напоминание для вас. Программа не может проверить, действительно ли вы их учли.</p></div>';
+    h+='<div class="consequence"><h3>Что из этого будет в данных</h3>'+
+       '<p>Ваш вопрос станет <b>одной переменной</b> базы данных. Слова «Никогда», «Редко», «Иногда», '+
+       '«Часто», «Всегда» превратятся в числа <code>1</code>…<code>5</code> – и только после этого '+
+       'по ним можно будет что-то посчитать.</p>'+
+       '<p>Каждый вариант ответа станет одним возможным значением в таблице. Если нужного варианта '+
+       'нет, респондент не сможет его выбрать, и такой ответ в данные не попадёт.</p></div>';
+    h+=nav('Назад','Дальше: типы вопросов',true);
+  } else if (blocked){
+    h+='<div class="blocked">Исправьте то, что перечислено выше, и нажмите «Проверить» ещё раз. '+
+       'Если вы считаете, что проверка ошибается, – позовите преподавателя: такое бывает.</div>';
+  }
+  document.getElementById('out').innerHTML=h;
+  S.saved=!blocked && !res.empty;
+  wireNav();
+}
+
+/* ── Экран 3 ── */
+var T3=[
+  { setup:'Вам нужно узнать, какие именно задачи студенты поручают ИИ. Задачи бывают разные, '+
+          'и один человек обычно поручает сразу несколько. Поэтому вы решили задать вопрос так, '+
+          'чтобы можно было отметить несколько ответов:',
+    qText:'Задачи, поручаемые ИИ (отметьте все подходящие)',
+    qOpts:['Поиск литературы','Правка стиля','План и идеи','Черновик текста','Задачи и код'],
+    ask:'Опрос прошёл, ответы собраны. Как этот вопрос будет выглядеть в таблице с данными?',
+    opts:[
+      {t:'Один столбец, в нём ответы через запятую', ok:false,
+       why:'Так выглядит выгрузка сразу после опроса. Работать с таким столбцом нельзя: в одной ячейке лежит сразу несколько ответов.'},
+      {t:'Пять столбцов, в каждом 0 или 1', ok:true,
+       why:'Каждый вариант становится отдельной переменной: 1 – выбрал, 0 – не выбрал.'},
+      {t:'Пять строк на одного респондента', ok:false,
+       why:'Одна строка – это всегда один респондент. Если бы на человека приходилось несколько строк, сравнивать людей между собой было бы нельзя.'}
+    ],
+    cons:'<table class="mini"><tr><th></th><th>литература</th><th>стиль</th><th>план</th><th>черновик</th><th>код</th></tr>'+
+         '<tr><td>респондент 1</td><td class="num">1</td><td class="num">1</td><td class="num">0</td><td class="num">0</td><td class="num">0</td></tr>'+
+         '<tr><td>респондент 2</td><td class="num">1</td><td class="num">0</td><td class="num">0</td><td class="num">1</td><td class="num">1</td></tr></table>'+
+         '<p>С такими столбцами работают поодиночке: по каждому считают долю выбравших и сравнивают '+
+         'её между группами. Среднее по столбцу из нулей и единиц как раз осмысленно – оно и есть эта доля. '+
+         'А вот сложить пять столбцов в один показатель нельзя: это пять разных вопросов, а не шкала. '+
+         'Студент, который поручает ИИ черновик текста, не «больше» пользуется ИИ, чем тот, кто поручает поиск литературы.</p>'+
+         '<p>Разносить ответы по столбцам вручную не придётся: это сделает сервис, с которым вы будете работать через полчаса.</p>' },
+
+  { setup:'Вы хотите узнать, что студенты считают допустимым. '+
+          'Вы спрашиваете об этом утверждением со шкалой согласия и добавляете пятым вариантом '+
+          '«Затрудняюсь ответить» – потому что не у всех есть позиция, и заставлять человека '+
+          'выбирать сторону неправильно. Вопрос получился такой:',
+    qText:'Оцените согласие с утверждением: «Использование ИИ при подготовке письменных работ допустимо, если студент сам редактирует текст»',
+    qOpts:['Совершенно согласен','Скорее согласен','Скорее не согласен','Совершенно не согласен','Затрудняюсь ответить'],
+    ask:'Данные собраны. Что с ответами на этот вопрос можно сделать при анализе?',
+    opts:[
+      {t:'Посчитать среднее и сравнивать средние между группами', ok:false,
+       why:'Так делают часто, и это ошибка. Ответы здесь упорядочены, но расстояния между ними неизвестны: '+
+           'неоткуда взять, что разница между «скорее согласен» и «совершенно согласен» такая же, '+
+           'как между «скорее не согласен» и «скорее согласен». Складывать и делить можно числа, '+
+           'а здесь номера позиций. К тому же «затрудняюсь ответить» вообще не позиция шкалы, '+
+           'а отказ, и в расчёт он попадёт просто как число.'},
+      {t:'Посмотреть, сколько человек выбрало каждый вариант, и сравнить это распределение между группами', ok:true,
+       why:'Да. Распределение показывает, куда смещены ответы, а таблица сопряжённости – различаются ли группы. '+
+           'Этого достаточно, чтобы сделать вывод, и ничего сверх того тут не требуется.'},
+      {t:'Ничего: это качественный вопрос, для анализа он не годится', ok:false,
+       why:'Годится. Ответы упорядочены, и это немало: видно, в какую сторону смещено распределение '+
+           'и различаются ли группы. Нельзя только одно – обращаться с номерами позиций как с числами.'}
+    ],
+    cons:'<table class="mini"><tr><th>Что делать с таким вопросом</th><th></th></tr>'+
+         '<tr><td>Распределение: сколько человек выбрало каждый вариант</td><td class="num">да</td></tr>'+
+         '<tr><td>Таблица сопряжённости с другой переменной</td><td class="num">да</td></tr>'+
+         '<tr><td>Среднее, разность средних</td><td class="num">нет</td></tr></table>'+
+         '<p>Правило простое: <b>ответы упорядочены, но не измерены.</b> Вы знаете, что «скорее согласен» '+
+         'больше, чем «скорее не согласен», но не знаете, насколько больше, – а среднее это знание предполагает.</p>'+
+         '<p>Среднее по согласию встречается в работах, но считают его не по одному вопросу, '+
+         'а по батарее из нескольких, сведённой в общий индекс. Это отдельная процедура, '+
+         'и к одиночному вопросу она отношения не имеет.</p>'+
+         '<p>Отдельно про «затрудняюсь ответить»: это не самая сильная степень несогласия, '+
+         'а отказ отвечать. В распределении его показывают отдельной строкой, а в расчётах '+
+         'объявляют пропуском – иначе он войдёт в них как обычное число.</p>' },
+
+  { setup:'Вам нужно узнать, сколько времени студент тратит на учёбу вне занятий. '+
+          'Спрашивать «много или мало» вы не хотите: «много» каждый понимает по-своему, '+
+          'и сравнить такие ответы между людьми не получится. Поэтому вы спрашиваете о количестве:',
+    qText:'Сколько часов в неделю вы тратите на учёбу вне занятий?',
+    qOpts:null,
+    ask:'Текст вопроса готов, осталось придумать варианты ответа. Какой набор вы возьмёте?',
+    opts:[
+      {t:'1–3 / 3–5 / 5 и более', ok:false,
+       why:'Студент, который занимается три часа, подходит и под первый вариант, и под второй.'},
+      {t:'1–3 / 4–6 / 7 и более', ok:true,
+       why:'Границы не пересекаются: каждому числу соответствует один вариант.'},
+      {t:'Мало / нормально / много', ok:false,
+       why:'«Нормально» каждый понимает по-своему, и сравнивать такие ответы между людьми нельзя. Вопрос про количество – значит и варианты должны быть про количество.'}
+    ],
+    cons:'<p>В первом наборе часть людей с тремя часами выберет первый вариант, часть – второй. '+
+         'Разница между группами окажется не настоящей, а созданной формулировкой.</p>'+
+         '<p>По таблице это уже не заметно: цифры в обоих случаях выглядят одинаково аккуратно. '+
+         'Следы такой ошибки остаются только в анкете.</p>'+
+         '<p>Есть и третий путь – оставить поле для числа, без вариантов. Тогда граница ничего не портит '+
+         'и подробность сохраняется, но в столбце появляются <code>99</code>, круглые «10» и пустые ячейки: '+
+         'часть людей своего числа не знает и пишет наугад. Выбор между интервалами и свободным числом – '+
+         'это выбор между чистыми категориями и подробностью. В датасете, с которым вы будете работать '+
+         'через полчаса, этот вопрос задан числом, и следы такого выбора там видны.</p>' }
+];
+
+function screen3(){
+  var h='<div class="card"><h2>Задание 3. Чем вопросы отличаются друг от друга</h2>'+
+    '<div class="taskbox"><p style="margin:0">Вопросы уже сформулированы. Нужно предсказать, '+
+    'что получится из каждого в таблице с данными.</p></div></div>';
+
+  T3.forEach(function(t,i){
+    h+='<div class="card"><h3 style="margin-top:0">Задание 3.'+(i+1)+'</h3>'+
+       '<p>'+t.setup+'</p>'+
+       '<div class="ask"><p class="qt">'+esc(t.qText)+'</p>'+
+       (t.qOpts ? '<ul>'+t.qOpts.map(function(o){return '<li>'+esc(o)+'</li>';}).join('')+'</ul>'
+                : '<p class="small muted" style="margin:0">варианты ответа пока не выбраны</p>')+
+       '</div>'+
+       '<p><b>'+esc(t.ask)+'</b></p>';
+    t.opts.forEach(function(o,j){
+      var cls='opt';
+      if (S.t3[i]!==null){ cls+= o.ok?' right':(S.t3[i]===j?' wrong':''); }
+      h+='<label class="'+cls+'" data-t="'+i+'" data-j="'+j+'">'+
+         '<input type="radio" name="t3_'+i+'"'+(S.t3[i]===j?' checked':'')+'>'+
+         '<span><span class="t">'+esc(o.t)+'</span>'+
+         (S.t3[i]!==null?'<span class="why">'+esc(o.why)+'</span>':'')+'</span></label>';
+    });
+    if (S.t3[i]!==null)
+      h+='<div class="consequence"><h3>Что из этого будет в данных</h3>'+t.cons+'</div>';
+    h+='</div>';
+  });
+
+  var allDone=S.t3.every(function(x){ return x!==null; });
+  if (allDone) h+=nav('Назад','Дальше: паспортичка',true);
+
+  document.getElementById('main').innerHTML=h;
+  document.querySelectorAll('label.opt[data-t]').forEach(function(el){
+    el.addEventListener('click', function(){
+      S.t3[+el.dataset.t]=+el.dataset.j; draw();
+    });
+  });
+  wireNav();
+}
+
+/* ── Экран 4 ── */
+function screen4(){
+  var h='<div class="card"><h2>Задание 4. Паспортичка</h2>'+
+    '<div class="taskbox"><p style="margin:0">Паспортичка – блок вопросов о самом респонденте. '+
+    'Отметьте формулировки, которые <b>допустимы в анонимной анкете</b>.</p></div>';
+  DATA.passport.forEach(function(p,i){
+    var cls='opt';
+    if (S.passportDone) cls+= p.ok?' right':(S.passport[i]?' wrong':'');
+    else if (S.passport[i]) cls+=' picked';
+    h+='<label class="'+cls+'" data-p="'+i+'"><input type="checkbox"'+
+       (S.passport[i]?' checked':'')+'>'+
+       '<span><span class="t">'+esc(p.text)+'</span>'+
+       (S.passportDone&&p.why?'<span class="why">'+esc(p.why)+'</span>':'')+'</span></label>';
+  });
+  if (!S.passportDone) h+='<div class="btns"><button id="checkP">Проверить</button></div>';
+  h+='</div>';
+
+  if (S.passportDone){
+    h+='<div class="consequence"><h3>Что из этого будет в данных</h3>'+
+       '<p>Допустимые формулировки станут обычными столбцами, с которыми работают как со всеми '+
+       'остальными. Три отклонённые – персональные данные: с ними анкета перестаёт быть анонимной, '+
+       'и к ней применяются совсем другие правила хранения.</p>'+
+       '<p>Есть и то, чего не видно сразу. Даже без этих столбцов человек может выдать себя сам – '+
+       'в ответе на открытый вопрос, когда напишет «я из 302 группы, наш преподаватель знает мою позицию». '+
+       'Технических претензий к такому ответу нет, и программа его не пометит. '+
+       'Через полчаса вы найдёте такие ответы в настоящих данных.</p></div>';
+    h+=nav('Назад','Собрать анкету',true);
+  }
+
+  document.getElementById('main').innerHTML=h;
+  document.querySelectorAll('label.opt[data-p]').forEach(function(el){
+    el.addEventListener('click', function(e){
+      var i=+el.dataset.p;
+      if (S.passport[i]) delete S.passport[i]; else S.passport[i]=true;
+      if (e.target.tagName!=='INPUT') e.preventDefault();
+      draw();
+    });
+  });
+  var cp=document.getElementById('checkP');
+  if (cp) cp.addEventListener('click', function(){ S.passportDone=true; draw(); });
+  wireNav();
+}
+
+/* ── Экран 5 ── */
+function buildSurvey(){
+  var L=['================================================',
+         'АНКЕТА: '+DATA.theme,
+         '================================================',''];
+  var opts=S.options.split('\n').map(function(x){return x.trim();}).filter(Boolean);
+  DATA.rest.forEach(function(r){
+    L.push('[Вопрос '+r.n+'] '+r.q);
+    r.opts.forEach(function(o){ L.push(o); });
+    L.push('');
+    if (r.n===1){
+      L.push('[Вопрос 1, ваш вариант] '+S.question.trim()+' (выбор одного ответа)');
+      opts.forEach(function(o){ L.push(o); });
+      L.push('');
+    }
+  });
+  DATA.passportOut.forEach(function(p){
+    L.push('[Паспортичка] '+p.q);
+    p.opts.forEach(function(o){ L.push(o); });
+    L.push('');
+  });
+  L.push('================================================');
+  return L.join('\n');
+}
+
+function screen5(){
+  var txt=buildSurvey();
+  var h='<div class="card"><h2>Анкета готова</h2>'+
+    '<p class="small muted">Остальные вопросы написаны заранее: анкету целиком за двадцать минут '+
+    'никто бы не составил. Ваш вариант расположен рядом с первым вопросом: он о том же самом, '+
+    'но сформулирован иначе.</p>'+
+    '<pre class="out" id="surveyText">'+esc(txt)+'</pre>'+
+    '<div class="btns"><button id="dl">Скачать анкету (.txt)</button>'+
+    '<button class="ghost" id="back">Назад</button></div>'+
+    '<div class="note small" style="margin-top:18px"><b>Как перенести это в форму для онлайн-опроса.</b> '+
+    'Попробуйте скопировать список вариантов целиком и вставить его в первое поле варианта – '+
+    'некоторые сервисы сами разносят строки по отдельным вариантам. Если не разнесёт, '+
+    'придётся вводить по одному; проверьте это до того, как начнёте набирать всю анкету.</div>'+
+    '</div>'+
+
+    '<div class="consequence"><h3>Сравните две формулировки</h3>'+
+    '<p>Вопрос 1 и ваш вариант могут касаться одного и того же признака, но измеряют его по-разному. '+
+    'В первом варианты образуют шкалу оценки: «редко – иногда – часто». '+
+    'Во втором они могут описывать конкретную частоту: «раз в неделю», «каждый день». '+
+    'Первый вопрос выясняет, как студент <b>оценивает</b> своё обращение к ИИ; второй – '+
+    'как часто оно <b>происходит</b>.</p>'+
+    '<p>Оба подхода допустимы, но полученные данные будут несопоставимы: '+
+    'в первом случае ответы отражают субъективную оценку, во втором – '+
+    'фактическую частоту событий.</p>'+
+    '<p>Это решение принимается при составлении анкеты. В готовой таблице оно уже не видно: '+
+    'останутся числовые значения, по которым невозможно восстановить, как именно был сформулирован вопрос.</p></div>'+
+
+    '<div class="consequence"><h3>Что дальше</h3>'+
+    '<p>Переходите к заданию с учебным датасетом.</p>'+
+    '<p>В этом датасете видно, во что превратилось каждое решение (за исключением первого вопроса), которое вы только что разбирали:</p>'+
+    '<table class="mini"><tr><th>Решение в анкете</th><th>Как оно отражается в данных</th></tr>'+
+    '<tr><td>Шкала частоты из пяти пунктов</td><td>Один числовой столбец, пригодный для расчётов</td></tr>'+
+    '<tr><td>Множественный выбор</td><td>Пять столбцов со значениями 0 или 1</td></tr>'+
+    '<tr><td>Вариант «затрудняюсь ответить»</td><td>Ответ, который при анализе обычно кодируют как пропуск</td></tr>'+
+    '<tr><td>Открытый вопрос</td><td>Текстовый столбец, требующий ручного чтения и кодирования</td></tr>'+
+    '<tr><td>Имя или ник в паспортичке</td><td>Персональные данные в таблице</td></tr></table></div>';
+
+  document.getElementById('main').innerHTML=h;
+  document.getElementById('dl').addEventListener('click', function(){
+    var blob=new Blob(['﻿'+txt],{type:'text/plain;charset=utf-8'});
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='анкета.txt';
+    a.click();
+  });
+  document.getElementById('back').addEventListener('click', function(){ S.screen--; draw(); });
+}
+
+/* ════════════════ РОУТЕР ════════════════ */
+var lastScreen = -1;
+function draw(){
+  var y = window.scrollY;                 // перерисовка внутри экрана не должна
+  S.seen[S.screen] = true;                // прокручивать страницу вверх
+  renderSteps();
+  [screen1,screen2,screen3,screen4,screen5][S.screen]();
+  if (S.screen !== lastScreen){
+    lastScreen = S.screen;
+    window.scrollTo({top:0,behavior:'smooth'});
+  } else {
+    window.scrollTo({top:y});
+  }
+}
+draw();
+</script>
+</body>
+</html>

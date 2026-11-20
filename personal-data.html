@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Политика обработки персональных данных – тренажёр «От вопроса к данным»</title>
+<style>
+:root{
+  --ink:#2b2620; --muted:#5f564a; --faint:#847a6b;
+  --accent:#A85D3E; --accent-deep:#7A4028; --accent-soft:rgba(168,93,62,.12);
+  --line:rgba(140,95,70,.18); --line-light:rgba(140,95,70,.1);
+  --hero-bg:#2C1A0B; --gold-bright:#e3b969;
+  --serif:Cambria,Georgia,'Times New Roman',serif;
+  --shadow:0 10px 36px rgba(130,70,45,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:var(--serif); color:var(--ink); line-height:1.7; font-size:17px;
+  background:#f7f2e7;
+  background-image:
+    radial-gradient(ellipse 900px 700px at 10% -5%, rgba(255,247,232,.9), transparent 60%),
+    radial-gradient(ellipse 800px 800px at 100% 30%, rgba(255,250,240,.7), transparent 55%);
+  background-attachment:fixed;
+  display:flex; flex-direction:column; min-height:100vh;
+}
+a{color:var(--accent-deep); text-underline-offset:3px}
+a:hover{color:var(--accent)}
+a:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:4px}
+
+header.topbar{border-bottom:1px solid var(--line); background:rgba(255,252,246,.6)}
+.topbar-inner{
+  max-width:820px; margin:0 auto; padding:14px 24px;
+  display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap
+}
+.back{
+  display:inline-flex; align-items:center; gap:7px; text-decoration:none;
+  font-weight:700; font-size:15px; color:var(--accent-deep)
+}
+.back::before{content:'‹'; font-size:21px; line-height:1}
+.topbar-title{font-size:14px; color:var(--faint); letter-spacing:.04em; text-transform:uppercase; font-weight:700}
+
+.wrap{max-width:820px; width:100%; margin:0 auto; padding:40px 24px 64px; flex:1 0 auto}
+.doc-header{border-bottom:1px solid var(--line); padding-bottom:20px; margin-bottom:10px}
+h1{font-size:28px; line-height:1.25; color:var(--accent-deep); font-weight:700; margin:0}
+.doc-meta{margin-top:8px; font-size:14.5px; color:var(--faint)}
+.doc-intro{
+  margin-top:18px; background:rgba(255,252,246,.6); border:1px solid var(--line);
+  border-radius:16px; padding:18px 22px; box-shadow:var(--shadow); font-size:16px
+}
+h2{font-size:19px; color:var(--accent-deep); font-weight:700; margin:34px 0 10px}
+p{margin:11px 0}
+ul{margin:11px 0 11px 22px} li{margin:6px 0}
+strong{color:var(--accent-deep)}
+.note{
+  border-left:3px solid var(--accent); padding-left:18px; margin:16px 0;
+  color:var(--muted); font-size:16px
+}
+
+.site-footer{background:var(--hero-bg); padding:30px 22px; flex-shrink:0}
+.footer-inner{
+  max-width:820px; margin:0 auto; display:flex; gap:18px;
+  justify-content:space-between; align-items:flex-end; flex-wrap:wrap
+}
+.footer-inner p{margin:0 0 6px; font-size:13.5px; color:rgba(227,185,105,.55)}
+.footer-inner a{color:var(--gold-bright); text-decoration:none; font-size:13.5px; font-weight:600}
+.footer-inner a:hover{text-decoration:underline}
+.footer-right{display:flex; gap:18px; flex-wrap:wrap}
+
+@media (max-width:640px){
+  body{font-size:16px}
+  .wrap{padding:26px 16px 44px}
+  h1{font-size:23px}
+  .footer-inner{flex-direction:column; align-items:flex-start; gap:12px}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="back" href="index.html">К тренажёру</a>
+    <div class="topbar-title">Правовые документы</div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="doc-header">
+    <h1>Политика обработки персональных данных</h1>
+    <p class="doc-meta">Учебный тренажёр «От вопроса к данным» · редакция 2026 г.</p>
+  </div>
+
+  <div class="doc-intro">
+    Составлена с учётом Федерального закона № 152-ФЗ «О персональных данных»
+    от 27.07.2006 и Регламента ЕС 2016/679 (GDPR).
+    <br><br>
+    <strong>Коротко:</strong> тренажёр работает целиком в вашем браузере. Он не отправляет
+    введённый текст на сервер и не сохраняет его даже на вашем устройстве. После закрытия
+    вкладки всё введённое исчезает.
+  </div>
+
+  <h2>1. Оператор</h2>
+  <p>
+    Тренажёр разработан <strong>Агафоновой Анной Борисовной</strong>, независимым
+    исследователем. Контакт: <a href="mailto:a.b.agafonova@gmail.com">a.b.agafonova@gmail.com</a>.
+    Это некоммерческий учебный инструмент, созданный для лабораторных работ по дисциплине
+    «Цифровые компетенции».
+  </p>
+
+  <h2>2. Что происходит с тем, что вы вводите</h2>
+  <p>
+    Весь текст, который вы вводите в тренажёре – формулировка вопроса и варианты ответа, –
+    обрабатывается <strong>локально в вашем браузере</strong> средствами JavaScript.
+    Введённое никуда не передаётся по сети: тренажёр не обращается к серверам ни при
+    загрузке страницы, ни во время работы, и работает в том числе без интернета.
+  </p>
+  <p>
+    Тренажёр не использует <code>localStorage</code>, <code>sessionStorage</code> и другие
+    хранилища браузера. Введённое существует только в оперативной памяти открытой вкладки:
+    при её закрытии или перезагрузке страницы всё исчезает без следа.
+  </p>
+  <p>
+    Файл анкеты, который можно скачать на последнем шаге, формируется в браузере и
+    сохраняется только на ваше устройство. Автор инструмента не получает к нему доступа.
+  </p>
+  <div class="note">
+    Тренажёр предназначен для учебных формулировок. Не вводите в него персональные данные –
+    свои или чужие: ни имена, ни контакты, ни сведения о конкретных людях. Для работы
+    тренажёра они не нужны.
+  </div>
+
+  <h2>3. Технические данные</h2>
+  <p>
+    Тренажёр не использует собственную аналитику, файлы cookie и трекеры. Реклама
+    не показывается, данные не собираются и не продаются. Внешние библиотеки, шрифты
+    и изображения не подключаются – страница самодостаточна.
+  </p>
+  <p>
+    Размещён тренажёр на GitHub Pages (GitHub, Inc., США). Хостинг может сохранять
+    стандартные серверные журналы – IP-адрес, время запроса, тип браузера – в рамках
+    работы платформы. Автор к этим журналам доступа не имеет.
+  </p>
+
+  <h2>4. Обращение по электронной почте</h2>
+  <p>
+    Если вы пишете на <a href="mailto:a.b.agafonova@gmail.com">a.b.agafonova@gmail.com</a>,
+    ваш адрес и текст письма используются только для ответа и не передаются третьим лицам.
+    Хранение – в сервисе Gmail (Google LLC, США).
+  </p>
+
+  <h2>5. Права субъектов персональных данных</h2>
+  <p>
+    В соответствии с 152-ФЗ и GDPR вы вправе получить информацию об обрабатываемых данных,
+    потребовать их уточнения или удаления, отозвать согласие. Обращайтесь:
+    <a href="mailto:a.b.agafonova@gmail.com">a.b.agafonova@gmail.com</a>. По данным,
+    хранящимся у GitHub или Google, обращайтесь к этим операторам напрямую.
+  </p>
+
+  <h2>6. Изменения политики</h2>
+  <p>
+    Политика может обновляться по мере развития инструмента. Дата в заголовке страницы
+    отражает последнюю редакцию.
+  </p>
+
+</div>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div>
+      <p>© 2026 Анна Агафонова, к.и.н. · <a href="https://urbantransmission.org" target="_blank" rel="noopener noreferrer">urbantransmission.org</a></p>
+      <p>Работает в браузере. Всё, что вы вводите, остаётся на вашем устройстве.</p>
+    </div>
+    <div class="footer-right">
+      <a href="index.html">К тренажёру</a>
+      <a href="terms.html">Условия использования</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
